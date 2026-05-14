@@ -351,9 +351,7 @@ tbody tr.hidden-row { display: none; }
 
 <nav class="nav">
   <button class="nav-btn active" onclick="showTab('mark')">Mark Attendance</button>
-  <button class="nav-btn" onclick="showTab('records')">Records</button>
   <button class="nav-btn" onclick="showTab('timetable')">Timetable</button>
-  <button class="nav-btn" onclick="showTab('settings')">Manage Classes</button>
 </nav>
 
 <main class="main">
@@ -472,30 +470,6 @@ tbody tr.hidden-row { display: none; }
     </div>
   </div>
 
-  <!-- ========== TAB: RECORDS ========== -->
-  <div id="tab-records" class="tab-content">
-    <div class="card">
-      <div class="card-title">Attendance Records</div>
-      <div class="filter-row">
-        <div class="form-group">
-          <label>From Date</label>
-          <input type="date" id="filterFrom" onchange="renderRecords()" />
-        </div>
-        <div class="form-group">
-          <label>To Date</label>
-          <input type="date" id="filterTo" onchange="renderRecords()" />
-        </div>
-        <div class="form-group">
-          <label>Subject</label>
-          <input type="text" id="filterSubject" placeholder="All subjects" oninput="renderRecords()" style="min-width:160px;" />
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="clearFilters()" style="align-self:flex-end;">Clear Filters</button>
-        <button class="btn btn-primary btn-sm" onclick="exportAllCSV()" style="align-self:flex-end;">&#11015; Export All CSV</button>
-      </div>
-    </div>
-    <div id="recordsList"></div>
-  </div>
-
   <!-- ========== TAB: TIMETABLE ========== -->
   <div id="tab-timetable" class="tab-content">
     <div class="card">
@@ -510,44 +484,6 @@ tbody tr.hidden-row { display: none; }
     </div>
     <div class="card" style="font-size:0.82rem;color:var(--muted);">
       <b>Subject Key:</b> L = Lecture &nbsp;|&nbsp; T = Tutorial &nbsp;|&nbsp; P = Practical &nbsp;|&nbsp; (B1)/(B2) = Batch-specific practical
-    </div>
-  </div>
-
-  <!-- ========== TAB: SETTINGS ========== -->
-  <div id="tab-settings" class="tab-content">
-    <div class="card">
-      <div class="card-title">Saved Custom Classes</div>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">These classes appear in every day's class selector alongside timetable classes.</p>
-      <div id="customClassList"></div>
-      <hr class="divider">
-      <div class="card-title" style="margin-bottom:10px;">Add New Custom Class</div>
-      <div class="form-row">
-        <div class="form-group" style="flex:1;min-width:180px;">
-          <label>Class / Subject Name</label>
-          <input type="text" id="settingsClassName" placeholder="e.g., Remedial Math" />
-        </div>
-        <div class="form-group">
-          <label>Time Slot (optional)</label>
-          <input type="text" id="settingsClassTime" placeholder="09:00-10:30" style="min-width:130px;" />
-        </div>
-        <div class="form-group">
-          <label>Color</label>
-          <input type="color" id="settingsClassColor" value="#6366f1" style="min-width:60px;padding:4px 6px;height:42px;" />
-        </div>
-        <button class="btn btn-primary" onclick="addCustomClass()" style="align-self:flex-end;">Add Class</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Student List</div>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">All <strong>125</strong> registered students.</p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>#</th><th>Roll No.</th><th>Name</th></tr>
-          </thead>
-          <tbody id="studentListTbody"></tbody>
-        </table>
-      </div>
     </div>
   </div>
 
@@ -773,12 +709,11 @@ const TIMETABLE = {
       {id:"eng-l",     subject:"ENGLISH",               type:"Lecture",   time:"15:45-17:15", color:"#64748b"},
     ],
     Wed: [
-      {id:"wap-t-w",   subject:"WAP",                   type:"Tutorial",  time:"09:00-10:30", color:"#3b82f6"},
-      {id:"math-t-w",  subject:"MATH",                  type:"Tutorial",  time:"10:30-12:00", color:"#f59e0b"},
-      {id:"wap-p-b1-w",subject:"WAP (P) [B1]",          type:"Practical", time:"13:30-15:00", color:"#3b82f6"},
-      {id:"dsa-p-b1-w",subject:"DSA (P) [B1]",          type:"Practical", time:"15:00-15:45", color:"#8b5cf6"},
-      {id:"yoga-p-w",  subject:"YOGA (P)",              type:"Practical", time:"15:45-16:30", color:"#06b6d4"},
-      {id:"math-p-b1-w",subject:"MATH (P) [B1]",        type:"Practical", time:"16:30-18:00", color:"#f59e0b"},
+      {id:"wap-t-w",    subject:"WAP",          type:"Tutorial",  time:"09:00-10:30", color:"#3b82f6"},
+      {id:"math-t-w",   subject:"MATH",         type:"Tutorial",  time:"10:30-12:00", color:"#f59e0b"},
+      {id:"wap-p-b1-w", subject:"WAP (P) [B1]", type:"Practical", time:"13:30-15:00", color:"#3b82f6"},
+      {id:"dsa-p-b1-w", subject:"DSA (P) [B1]", type:"Practical", time:"15:00-15:45", color:"#8b5cf6"},
+      {id:"math-p-b1-w",subject:"MATH (P) [B1]",type:"Practical", time:"15:45-17:15", color:"#f59e0b"},
     ],
     Thu: [
       {id:"dsa-t-th",  subject:"DSA",                   type:"Tutorial",  time:"09:00-10:30", color:"#8b5cf6"},
