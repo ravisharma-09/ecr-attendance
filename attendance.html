@@ -982,13 +982,15 @@ function renderStudentTbody() {
         </div>
       </td>
       <td>
-        <div style="display:flex;align-items:center;gap:5px;">
-          <span id="lbl_${s.roll}"
-            style="font-size:0.72rem;color:#b45309;font-weight:600;display:${status==='L'?'inline':'none'};white-space:nowrap;">Arrived at:</span>
-          <input type="time" class="late-time-input${status==='L'?' show':''}"
+        <div id="late_wrap_${s.roll}" style="display:${status==='L'?'flex':'none'};align-items:center;gap:5px;flex-wrap:wrap;">
+          <span style="font-size:0.7rem;color:#b45309;font-weight:800;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;">Arrived at</span>
+          <input type="time" class="late-time-input show"
             id="lt_${s.roll}" value="${rec.lateTime||''}"
             onchange="setLateTime('${s.roll}',this.value)"
-            title="Time student arrived (late)" />
+            title="Edit arrival time" />
+          <button class="btn btn-xs" onclick="setNowTime('${s.roll}')"
+            style="background:#fef3c7;border-color:#d97706;color:#b45309;box-shadow:2px 2px 0 #b45309;font-size:0.7rem;padding:3px 8px;white-space:nowrap;"
+            title="Set to current time">⏱ Now</button>
         </div>
       </td>
     `;
@@ -1008,18 +1010,17 @@ function setStatus(roll, status, btn) {
   row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   const ltInput = document.getElementById('lt_' + roll);
-  const lblEl = document.getElementById('lbl_' + roll);
+  const wrap    = document.getElementById('late_wrap_' + roll);
   if (status === 'L') {
-    ltInput.classList.add('show');
-    if (lblEl) lblEl.style.display = 'inline';
+    if (wrap) wrap.style.display = 'flex';
     if (!ltInput.value) {
       const now = new Date();
       ltInput.value = now.toTimeString().slice(0,5);
       attendance[roll].lateTime = ltInput.value;
     }
   } else {
-    ltInput.classList.remove('show');
-    if (lblEl) lblEl.style.display = 'none';
+    if (wrap) wrap.style.display = 'none';
+    if (ltInput) { ltInput.value = ''; attendance[roll] && (attendance[roll].lateTime = ''); }
   }
   updateStats();
 }
@@ -1027,6 +1028,16 @@ function setStatus(roll, status, btn) {
 function setLateTime(roll, val) {
   if (!attendance[roll]) attendance[roll] = {status:'L', lateTime:val};
   attendance[roll].lateTime = val;
+}
+
+function setNowTime(roll) {
+  const now = new Date();
+  const t = now.toTimeString().slice(0,5);
+  const input = document.getElementById('lt_' + roll);
+  if (input) { input.value = t; }
+  if (!attendance[roll]) attendance[roll] = {status:'L', lateTime:t};
+  attendance[roll].lateTime = t;
+  showToast('Time set to ' + t, 'info');
 }
 
 function updateStats() {
