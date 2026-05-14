@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECR Attendance System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --bg: #f5f0e8;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --border: #0f172a;
+  --muted: #64748b;
+  --shadow: 4px 4px 0px #0f172a;
+  --shadow-sm: 3px 3px 0px #0f172a;
+  --shadow-xs: 2px 2px 0px #0f172a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--ink); min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: #0f172a;
+  color: white; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 3px solid #2563eb; position: sticky; top: 0; z-index: 100;
+}
+.header h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.5px; }
+.header-meta { margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.header-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #2563eb; color: #fff; font-size: 0.68rem; font-weight: 800;
+  padding: 3px 10px; border-radius: 4px; letter-spacing: 0.8px; text-transform: uppercase;
+  border: 1.5px solid #60a5fa;
+}
+.header-badge-secondary {
+  display: inline-flex; align-items: center;
+  color: rgba(255,255,255,0.55); font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.header-right { text-align: right; }
+.clock { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.date-str { font-size: 0.72rem; opacity: 0.6; margin-top: 2px; }
+
+/* NAV */
+.nav {
+  background: white; border-bottom: 2.5px solid var(--border);
+  display: flex; padding: 0 28px; overflow-x: auto;
+}
+.nav-btn {
+  padding: 14px 22px; border: none; background: none; cursor: pointer;
+  font-size: 0.88rem; font-weight: 700; color: var(--muted);
+  border-bottom: 3px solid transparent; margin-bottom: -2.5px;
+  white-space: nowrap; transition: all 0.15s; letter-spacing: 0.2px;
+}
+.nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.nav-btn:hover:not(.active) { color: var(--ink); }
+
+/* MAIN */
+.main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* CARDS */
+.card {
+  background: var(--card); border-radius: 10px;
+  border: 2px solid var(--border); padding: 20px; margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.card-title { font-weight: 800; font-size: 1rem; margin-bottom: 14px; color: var(--ink); letter-spacing: -0.2px; }
+
+/* FORMS */
+.form-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label {
+  font-size: 0.72rem; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+input[type="date"], input[type="text"], input[type="time"], select {
+  padding: 9px 12px; border: 2px solid var(--border); border-radius: 6px;
+  font-size: 0.9rem; color: var(--ink); outline: none;
+  background: white; min-width: 130px; font-family: inherit; font-weight: 500;
+  box-shadow: var(--shadow-xs); transition: box-shadow 0.15s, transform 0.15s;
+}
+input:focus, select:focus {
+  border-color: var(--primary); outline: none;
+  box-shadow: 3px 3px 0px var(--primary);
+}
+
+/* BUTTONS */
+.btn {
+  padding: 9px 18px; border: 2px solid var(--border); border-radius: 6px;
+  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-family: inherit; letter-spacing: 0.2px; transition: all 0.12s;
+  box-shadow: var(--shadow-sm);
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0px var(--border); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border); }
+
+.btn-primary { background: var(--primary); color: white; border-color: var(--primary-dark); }
+.btn-primary:hover { box-shadow: 5px 5px 0px var(--primary-dark); }
+.btn-primary:active { box-shadow: 1px 1px 0px var(--primary-dark); }
+
+.btn-success { background: var(--success); color: white; border-color: #15803d; }
+.btn-success:hover { box-shadow: 5px 5px 0px #15803d; }
+.btn-success:active { box-shadow: 1px 1px 0px #15803d; }
+
+.btn-danger { background: var(--danger); color: white; border-color: #b91c1c; }
+.btn-danger:hover { box-shadow: 5px 5px 0px #b91c1c; }
+.btn-danger:active { box-shadow: 1px 1px 0px #b91c1c; }
+
+.btn-outline { background: white; border-color: var(--border); color: var(--ink); }
+.btn-outline:hover { background: #f8f8f8; }
+
+.btn-sm { padding: 6px 13px; font-size: 0.78rem; box-shadow: var(--shadow-xs); }
+.btn-xs { padding: 4px 10px; font-size: 0.73rem; box-shadow: 2px 2px 0px var(--border); }
+
+/* CLASS PILLS */
+.class-pills-wrap { margin-top: 16px; }
+.class-pills-label {
+  font-size: 0.7rem; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+}
+.class-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.class-pill {
+  padding: 7px 14px; border-radius: 6px; border: 2px solid var(--border);
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  background: white; display: flex; align-items: center; gap: 6px;
+  box-shadow: var(--shadow-xs); transition: all 0.12s; font-family: inherit;
+}
+.class-pill:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0px var(--border); }
+.class-pill:active { transform: translate(1px,1px); box-shadow: 1px 1px 0px var(--border); }
+.class-pill.active { background: var(--primary); color: white; border-color: var(--primary-dark); box-shadow: 3px 3px 0px var(--primary-dark); }
+.class-pill .pill-time { font-size: 0.68rem; opacity: 0.75; font-weight: 500; }
+.class-pill.custom-pill { border-style: dashed; }
+.class-pill.add-pill { border-style: dashed; color: var(--muted); background: var(--bg); box-shadow: none; }
+.class-pill.add-pill:hover { color: var(--primary); border-color: var(--primary); transform: none; box-shadow: none; }
+
+/* STATS BAR */
+.stats-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat-chip {
+  padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 800;
+  display: flex; align-items: center; gap: 5px; border: 2px solid var(--border);
+  box-shadow: var(--shadow-xs); letter-spacing: 0.2px;
+}
+.stat-chip.total { background: #dbeafe; color: #1d4ed8; border-color: #1d4ed8; }
+.stat-chip.present { background: #dcfce7; color: #15803d; border-color: #15803d; }
+.stat-chip.absent { background: #fee2e2; color: #b91c1c; border-color: #b91c1c; }
+.stat-chip.late { background: #fef3c7; color: #b45309; border-color: #b45309; }
+
+/* STUDENT TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+thead th {
+  background: #0f172a; color: white; padding: 11px 14px; text-align: left;
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.7px; white-space: nowrap;
+}
+thead th:first-child { border-radius: 0; }
+tbody td { padding: 10px 14px; border-bottom: 1.5px solid #e2e8f0; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #faf7f0; }
+tbody tr.hidden-row { display: none; }
+
+/* ATTENDANCE BUTTONS */
+.att-grp { display: flex; gap: 5px; align-items: center; }
+.att-btn {
+  padding: 4px 12px; border-radius: 5px; border: 2px solid;
+  font-size: 0.77rem; font-weight: 800; cursor: pointer; font-family: inherit;
+  background: white; line-height: 1.5; box-shadow: var(--shadow-xs);
+  transition: all 0.1s; letter-spacing: 0.3px;
+}
+.att-btn:hover { transform: translate(-1px,-1px); }
+.att-btn:active { transform: translate(1px,1px); box-shadow: none; }
+.att-btn.p { border-color: #16a34a; color: #16a34a; }
+.att-btn.p.on { background: #16a34a; color: white; box-shadow: 2px 2px 0px #15803d; }
+.att-btn.a { border-color: #dc2626; color: #dc2626; }
+.att-btn.a.on { background: #dc2626; color: white; box-shadow: 2px 2px 0px #b91c1c; }
+.att-btn.l { border-color: #d97706; color: #d97706; }
+.att-btn.l.on { background: #d97706; color: white; box-shadow: 2px 2px 0px #b45309; }
+
+.late-time-input {
+  padding: 4px 8px; border: 2px solid #d97706; border-radius: 5px;
+  font-size: 0.78rem; width: 90px; outline: none; display: none;
+  font-family: inherit; font-weight: 600; box-shadow: 2px 2px 0px #b45309;
+}
+.late-time-input.show { display: inline-block; }
+.late-time-input:focus { box-shadow: 3px 3px 0px #b45309; }
+
+/* STATUS BADGES */
+.status-badge {
+  padding: 3px 9px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;
+  border: 1.5px solid; display: inline-block;
+}
+.badge-p { background: #dcfce7; color: #15803d; border-color: #16a34a; }
+.badge-a { background: #fee2e2; color: #b91c1c; border-color: #dc2626; }
+.badge-l { background: #fef3c7; color: #b45309; border-color: #d97706; }
+
+/* SEARCH */
+.search-wrap {
+  position: relative; display: flex; align-items: center; flex: 1; max-width: 360px;
+}
+.search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 17px; height: 17px; color: var(--muted); pointer-events: none; flex-shrink: 0;
+}
+.search-input {
+  padding: 10px 14px 10px 38px; border: 2px solid var(--border); border-radius: 6px;
+  font-size: 0.9rem; outline: none; width: 100%;
+  font-family: inherit; font-weight: 500; background: white;
+  box-shadow: var(--shadow-sm); transition: all 0.15s;
+}
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 4px 4px 0px var(--primary);
+}
+.search-input::placeholder { color: #94a3b8; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+  border-radius: 6px; color: white; font-weight: 700; z-index: 9999;
+  opacity: 0; transform: translateY(8px); transition: all 0.25s; font-size: 0.88rem;
+  pointer-events: none; max-width: 320px; border: 2px solid rgba(0,0,0,0.2);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.3); font-family: inherit;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+.toast.info { background: var(--primary); }
+
+/* RECORD CARDS */
+.record-item {
+  background: white; border: 2px solid var(--border); border-radius: 8px;
+  padding: 14px 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.12s;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.record-item:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px var(--border); }
+.record-item:active { transform: translate(1px,1px); box-shadow: 2px 2px 0px var(--border); }
+.record-item-title { font-weight: 700; font-size: 0.95rem; }
+.record-item-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
+.record-item-stats { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.65);
+  display: flex; align-items: center; justify-content: center; z-index: 500;
+  display: none; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white; border-radius: 10px; padding: 26px;
+  width: 100%; max-width: 820px; max-height: 85vh; overflow-y: auto;
+  border: 2.5px solid var(--border); box-shadow: 8px 8px 0px var(--border);
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.modal-header h2 { font-size: 1.1rem; font-weight: 800; }
+.modal-close {
+  background: white; border: 2px solid var(--border); cursor: pointer;
+  font-size: 1rem; color: var(--ink); padding: 4px 8px; line-height: 1;
+  border-radius: 5px; box-shadow: var(--shadow-xs); font-weight: 700;
+}
+.modal-close:hover { background: #fee2e2; color: #b91c1c; border-color: #b91c1c; }
+
+/* TIMETABLE */
+.tt-wrap { overflow-x: auto; }
+.tt-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 700px; }
+.tt-table th, .tt-table td { border: 2px solid var(--border); padding: 7px 9px; text-align: center; }
+.tt-table th { background: #0f172a; color: white; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.tt-cell { border-radius: 4px; padding: 5px 7px; font-weight: 700; white-space: nowrap; border: 1.5px solid rgba(0,0,0,0.15); }
+
+/* NO CLASS */
+.no-class { text-align: center; padding: 50px 20px; color: var(--muted); }
+.no-class .icon { font-size: 3.5rem; margin-bottom: 14px; }
+.no-class p { font-size: 1rem; font-weight: 600; }
+
+/* CUSTOM CLASS ADDER */
+.custom-adder {
+  background: #faf7f0; border-radius: 8px; border: 2px dashed var(--border);
+  padding: 16px; margin-top: 14px;
+}
+.custom-adder-title {
+  font-size: 0.72rem; font-weight: 800; color: var(--muted);
+  margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.7px;
+}
+
+/* ROLL & NAME */
+.sno { color: var(--muted); font-size: 0.75rem; width: 32px; font-weight: 600; }
+.roll { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.name { font-weight: 600; }
+
+/* DIVIDER */
+.divider { border: none; border-top: 2px solid #e2e8f0; margin: 18px 0; }
+
+/* SUMMARY */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.summary-box {
+  background: var(--bg); border-radius: 8px; padding: 16px; text-align: center;
+  border: 2px solid var(--border); box-shadow: var(--shadow-xs);
+}
+.summary-box .num { font-size: 2.2rem; font-weight: 800; }
+.summary-box .lbl { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+
+/* FILTER ROW */
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 40px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 1.1rem; }
+  .clock { font-size: 1rem; }
+  .main { padding: 14px; }
+  .form-row { flex-direction: column; }
+  .att-btn { padding: 3px 9px; font-size: 0.72rem; }
+  tbody td, thead th { padding: 7px 8px; }
+  .card { padding: 14px; }
+  .search-wrap { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <h1>ECR Attendance System</h1>
+    <div class="header-meta">
+      <span class="header-badge">Batch 2026–2029</span>
+      <span class="header-badge-secondary">125 Students</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="clock" id="clockEl">--:--:--</div>
+    <div class="date-str" id="dateStrEl"></div>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showTab('mark')">Mark Attendance</button>
+  <button class="nav-btn" onclick="showTab('records')">Records</button>
+  <button class="nav-btn" onclick="showTab('timetable')">Timetable</button>
+  <button class="nav-btn" onclick="showTab('settings')">Manage Classes</button>
+</nav>
+
+<main class="main">
+
+  <!-- ========== TAB: MARK ========== -->
+  <div id="tab-mark" class="tab-content active">
+    <div class="card">
+      <div class="card-title">Select Class Session</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="attDate" onchange="onDateChange()" />
+        </div>
+        <div class="form-group">
+          <label>Day</label>
+          <select id="daySelect" onchange="updateClassPills()">
+            <option value="Mon">Monday</option>
+            <option value="Tue">Tuesday</option>
+            <option value="Wed">Wednesday</option>
+            <option value="Thu">Thursday</option>
+            <option value="Fri">Friday</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Batch</label>
+          <select id="batchSelect" onchange="updateClassPills()">
+            <option value="B1">Batch 1 (B1)</option>
+            <option value="B2">Batch 2 (B2)</option>
+            <option value="ALL">All Students</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="class-pills-wrap">
+        <div class="class-pills-label">Today's Classes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8;">— click to select</span></div>
+        <div class="class-pills" id="classPills"></div>
+      </div>
+
+      <div class="custom-adder" id="customAdder" style="display:none;">
+        <div class="custom-adder-title">Add Custom Class</div>
+        <div class="form-row">
+          <div class="form-group" style="flex:1;min-width:180px;">
+            <label>Class / Subject Name</label>
+            <input type="text" id="customName" placeholder="e.g., Extra Lecture - Math" />
+          </div>
+          <div class="form-group">
+            <label>Time Slot</label>
+            <input type="text" id="customTime" placeholder="09:00-10:30" style="min-width:120px;" />
+          </div>
+          <button class="btn btn-primary" onclick="selectCustomClass()" style="align-self:flex-end;">Select</button>
+          <button class="btn btn-outline" onclick="saveAndSelectCustomClass()" style="align-self:flex-end;">Save &amp; Select</button>
+          <button class="btn btn-outline" onclick="closeCustomAdder()" style="align-self:flex-end;">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No class selected placeholder -->
+    <div class="no-class card" id="noClassMsg">
+      <div class="icon">📋</div>
+      <p>Select a class above to start marking attendance</p>
+    </div>
+
+    <!-- Attendance marking section -->
+    <div id="markSection" style="display:none;">
+      <div class="card" style="padding:14px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-weight:700;font-size:1.05rem;" id="sessionTitle">-</div>
+            <div style="font-size:0.8rem;color:var(--muted);" id="sessionMeta">-</div>
+          </div>
+          <div class="stats-row">
+            <span class="stat-chip total">Total: <span id="statTotal">0</span></span>
+            <span class="stat-chip present">Present: <span id="statPresent">0</span></span>
+            <span class="stat-chip absent">Absent: <span id="statAbsent">0</span></span>
+            <span class="stat-chip late">Late: <span id="statLate">0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="search-input" id="searchInput" type="text" placeholder="Search by name or roll number..." oninput="filterStudents()" />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="markAll('P')">✓ All Present</button>
+            <button class="btn btn-outline btn-sm" onclick="markAll('A')">✗ All Absent</button>
+            <button class="btn btn-outline btn-sm" onclick="resetAll()">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Roll No.</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Late Arrival Time</th>
+              </tr>
+            </thead>
+            <tbody id="studentTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;margin-bottom:8px;">
+        <button class="btn btn-primary" onclick="exportCSV()" style="font-size:0.92rem;padding:12px 28px;letter-spacing:0.3px;">&#11015; Export &amp; Share CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: RECORDS ========== -->
+  <div id="tab-records" class="tab-content">
+    <div class="card">
+      <div class="card-title">Attendance Records</div>
+      <div class="filter-row">
+        <div class="form-group">
+          <label>From Date</label>
+          <input type="date" id="filterFrom" onchange="renderRecords()" />
+        </div>
+        <div class="form-group">
+          <label>To Date</label>
+          <input type="date" id="filterTo" onchange="renderRecords()" />
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" id="filterSubject" placeholder="All subjects" oninput="renderRecords()" style="min-width:160px;" />
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()" style="align-self:flex-end;">Clear Filters</button>
+        <button class="btn btn-primary btn-sm" onclick="exportAllCSV()" style="align-self:flex-end;">&#11015; Export All CSV</button>
+      </div>
+    </div>
+    <div id="recordsList"></div>
+  </div>
+
+  <!-- ========== TAB: TIMETABLE ========== -->
+  <div id="tab-timetable" class="tab-content">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+        <div class="card-title" style="margin:0;">Weekly Timetable</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-primary" onclick="setTtBatch('B1')" id="ttB1Btn">Batch 1</button>
+          <button class="btn btn-sm btn-outline" onclick="setTtBatch('B2')" id="ttB2Btn">Batch 2</button>
+        </div>
+      </div>
+      <div class="tt-wrap" id="ttWrap"></div>
+    </div>
+    <div class="card" style="font-size:0.82rem;color:var(--muted);">
+      <b>Subject Key:</b> L = Lecture &nbsp;|&nbsp; T = Tutorial &nbsp;|&nbsp; P = Practical &nbsp;|&nbsp; (B1)/(B2) = Batch-specific practical
+    </div>
+  </div>
+
+  <!-- ========== TAB: SETTINGS ========== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="card">
+      <div class="card-title">Saved Custom Classes</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">These classes appear in every day's class selector alongside timetable classes.</p>
+      <div id="customClassList"></div>
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:10px;">Add New Custom Class</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1;min-width:180px;">
+          <label>Class / Subject Name</label>
+          <input type="text" id="settingsClassName" placeholder="e.g., Remedial Math" />
+        </div>
+        <div class="form-group">
+          <label>Time Slot (optional)</label>
+          <input type="text" id="settingsClassTime" placeholder="09:00-10:30" style="min-width:130px;" />
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="color" id="settingsClassColor" value="#6366f1" style="min-width:60px;padding:4px 6px;height:42px;" />
+        </div>
+        <button class="btn btn-primary" onclick="addCustomClass()" style="align-self:flex-end;">Add Class</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Student List</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">All <strong>125</strong> registered students.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Roll No.</th><th>Name</th></tr>
+          </thead>
+          <tbody id="studentListTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CR GUIDELINES (always visible at bottom) ========== -->
+  <div style="max-width:1100px;margin:24px auto 36px;padding:0 24px;">
+    <div style="background:#0f172a;border-radius:12px;padding:26px 28px;color:white;border:2.5px solid #1e293b;box-shadow:6px 6px 0px #1e293b;">
+      <div style="font-size:0.95rem;font-weight:800;letter-spacing:0.3px;margin-bottom:18px;display:flex;align-items:center;gap:8px;border-bottom:1.5px solid rgba(255,255,255,0.1);padding-bottom:14px;">
+        <span style="background:#2563eb;padding:4px 10px;border-radius:5px;font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;font-weight:800;">CR Guide</span>
+        <span>How to Mark &amp; Submit Attendance</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">
+        <div style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#2563eb;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Select Date &amp; Class</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;">Set the correct date, choose day &amp; batch, then click a class pill to load the student list.</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#2563eb;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Mark Every Student</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;"><b style="color:#86efac;">P</b> = Present &nbsp;·&nbsp; <b style="color:#fca5a5;">A</b> = Absent &nbsp;·&nbsp; <b style="color:#fde68a;">L</b> = Late. Tip: hit <em>All Present</em> first, then mark absences.</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#d97706;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">L</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Late? Set Arrival Time</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;">Clicking <b style="color:#fde68a;">L</b> reveals an <em>Arrived at:</em> time field. It auto-fills the current time — adjust if needed.</div>
+          </div>
+        </div>
+        <div style="background:rgba(37,99,235,0.25);border:1.5px solid #2563eb;border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#2563eb;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">↓</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Export &amp; Send to College</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;">Click <b style="color:#93c5fd;">Export &amp; Share CSV</b> — downloads a complete sheet with class info, summary &amp; student list. Email/WhatsApp it to faculty the same day.</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#64748b;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">!</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Never Edit the CSV</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;">Do not change roll numbers or names in the file. If correction needed, fix in the app and re-export.</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="background:#64748b;color:white;font-size:0.75rem;font-weight:800;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</span>
+          <div>
+            <div style="font-weight:700;font-size:0.86rem;">Extra / Custom Classes</div>
+            <div style="font-size:0.77rem;opacity:0.75;margin-top:3px;line-height:1.5;">Not in the timetable? Click <em>+ Add Custom Class</em> or go to <b>Manage Classes</b> tab to save it for future use.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;font-size:0.73rem;opacity:0.45;text-align:center;letter-spacing:0.3px;">
+        Records are auto-saved in this browser when you export. View past records in the Records tab.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- RECORD DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <h2 id="modalTitle">Attendance Detail</h2>
+      <button class="modal-close" onclick="closeModalDirect()">&#x2715;</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// DATA
+// =====================
+const STUDENTS = [
+  {roll:"2102508701",name:"AARPAN LOHORA"},
+  {roll:"2102508702",name:"ABHAY PRATAP SINGH TOMAR"},
+  {roll:"2102508703",name:"Abhijit Saha"},
+  {roll:"2102508704",name:"ABHINAV KUMAR"},
+  {roll:"2102508705",name:"ADDHYA NANDINI"},
+  {roll:"2102508706",name:"ADITI SINGH"},
+  {roll:"2102508707",name:"Aditya"},
+  {roll:"2102508708",name:"AKSHAY KUMAR"},
+  {roll:"2102508709",name:"AMAN GUPTA"},
+  {roll:"2102508710",name:"ANANT SHARMA"},
+  {roll:"2102508711",name:"ANANYA CHAVAN"},
+  {roll:"2102508712",name:"Anjali Singh"},
+  {roll:"2102508713",name:"Anubhav Kumari"},
+  {roll:"2102508714",name:"ANUSHKA GUPTA"},
+  {roll:"2102508715",name:"Apish Rana"},
+  {roll:"2102508716",name:"ARCHITHA SINGH"},
+  {roll:"2102508717",name:"Arunika Chanda"},
+  {roll:"2102508718",name:"ARYAN CHAUHAN"},
+  {roll:"2102508719",name:"ARYAN PATEL"},
+  {roll:"2102508720",name:"Ashmita Kamath"},
+  {roll:"2102508721",name:"Asmitha M"},
+  {roll:"2102508722",name:"ATUL SAHU"},
+  {roll:"2102508723",name:"AVANISH SINGH SIKARWAR"},
+  {roll:"2102508724",name:"AYUSH KUMAR"},
+  {roll:"2102508725",name:"BAKARA NAVYA KRUSHI"},
+  {roll:"2102508726",name:"BANGAD SWAYAM ANILKUMAR"},
+  {roll:"2102508727",name:"BHAVESH SHARMA"},
+  {roll:"2102508728",name:"BIBHUKESH MEDHI"},
+  {roll:"2102508729",name:"BIKASH JHA"},
+  {roll:"2102508730",name:"C HARIKRISHNA"},
+  {roll:"2102508731",name:"Ch Sai Srija"},
+  {roll:"2102508732",name:"CHAVI R"},
+  {roll:"2102508733",name:"CHEVURI SANTOSH"},
+  {roll:"2102508734",name:"DEBANGSHU SARKAR"},
+  {roll:"2102508735",name:"DEEKSHITH R"},
+  {roll:"2102508736",name:"Deepak Kumar Choudhary"},
+  {roll:"2102508737",name:"DEV KUMAR"},
+  {roll:"2102508738",name:"DHANISHTHA"},
+  {roll:"2102508739",name:"DHASHAMI J"},
+  {roll:"2102508740",name:"DHIRAJ SANJAY RATHOD"},
+  {roll:"2102508741",name:"DHRUV KALPESH MEHTA"},
+  {roll:"2102508742",name:"Diganth N"},
+  {roll:"2102508743",name:"Divya Yadav"},
+  {roll:"2102508744",name:"Divyanshu Prakash"},
+  {roll:"2102508745",name:"Dushyant Acharya"},
+  {roll:"2102508746",name:"EDIGA VIKRAM GOUD"},
+  {roll:"2102508747",name:"GANDLA SRUJANA"},
+  {roll:"2102508748",name:"GEETANSH GOYAL"},
+  {roll:"2102508749",name:"GUNDLA AJAY"},
+  {roll:"2102508750",name:"HARSHIT CHAND"},
+  {roll:"2102508751",name:"Harshit Shukla"},
+  {roll:"2102508752",name:"Ishika Jain"},
+  {roll:"2102508753",name:"JAI AGARWALL"},
+  {roll:"2102508754",name:"JAIDEV BASANDRAI"},
+  {roll:"2102508755",name:"Jain Rishith Vishal"},
+  {roll:"2102508756",name:"JAISHREE"},
+  {roll:"2102508757",name:"JOTHINKUMAR B"},
+  {roll:"2102508758",name:"KARTIK MANMODE"},
+  {roll:"2102508759",name:"Kendepalli Sathwik"},
+  {roll:"2102508760",name:"KHAN SUMAYYA RAFIKA"},
+  {roll:"2102508761",name:"KRISHNA CHAURASIA"},
+  {roll:"2102508762",name:"KUMARI SHRISTI"},
+  {roll:"2102508763",name:"LAY SHAH"},
+  {roll:"2102508764",name:"LIYA M"},
+  {roll:"2102508765",name:"Luvya Rana"},
+  {roll:"2102508766",name:"MAHAVEER KUMAR CHHAJER"},
+  {roll:"2102508767",name:"MAHI MANJARI SINGH"},
+  {roll:"2102508768",name:"MOHAMMED ANAS"},
+  {roll:"2102508769",name:"MOHD FAIZAN KHAN"},
+  {roll:"2102508770",name:"MUDHALIYAR NITHYARAJ MURUGAN"},
+  {roll:"2102508771",name:"Namah Omprakash"},
+  {roll:"2102508772",name:"Nayan Raj"},
+  {roll:"2102508773",name:"NISHTHA AGARWAL"},
+  {roll:"2102508774",name:"NUKALA MOHITH KUMAR"},
+  {roll:"2102508775",name:"P M MOHAMMED WAAIZ"},
+  {roll:"2102508776",name:"PAHELI CHOUDHARI"},
+  {roll:"2102508777",name:"Pankaj Kumar"},
+  {roll:"2102508778",name:"PANYAM SHANMUKA PRANAV SAI"},
+  {roll:"2102508779",name:"PARIJAT CHAKRABORTY"},
+  {roll:"2102508780",name:"PRACHI CHAURASIA"},
+  {roll:"2102508781",name:"PRANAV SINGH"},
+  {roll:"2102508782",name:"PRASHANT C G"},
+  {roll:"2102508783",name:"Prateek Gupta"},
+  {roll:"2102508784",name:"PULKIT NAMDEV"},
+  {roll:"2102508785",name:"Raaj Jeetendra Patre"},
+  {roll:"2102508786",name:"RACHANA ADHIKARY"},
+  {roll:"2102508787",name:"RAJVEER SINGH"},
+  {roll:"2102508788",name:"RAVI SHARMA"},
+  {roll:"2102508789",name:"RIPUNJAY ROSHAN"},
+  {roll:"2102508790",name:"RITHUL RAJ KALLAT"},
+  {roll:"2102508791",name:"S CHINMAYA"},
+  {roll:"2102508792",name:"S K IZAZ AHMED"},
+  {roll:"2102508793",name:"Sadiqua Parween"},
+  {roll:"2102508794",name:"Sahitya Singh"},
+  {roll:"2102508795",name:"SAINY VERMA"},
+  {roll:"2102508796",name:"SAKSHAM KUMAR"},
+  {roll:"2102508797",name:"SAMRAT"},
+  {roll:"2102508798",name:"SAMRIDDHI RAJ"},
+  {roll:"2102508799",name:"SANGU VENKATA JITENDRA REDDY"},
+  {roll:"2102508800",name:"SANSKAR BANSAL"},
+  {roll:"2102508801",name:"SANSKRITI JAIN"},
+  {roll:"2102508802",name:"SAUBHAGYA SHARMA"},
+  {roll:"2102508803",name:"SAURABH KUMAR"},
+  {roll:"2102508804",name:"SHAAZ HEMANI"},
+  {roll:"2102508805",name:"SHINDE SAKSHI"},
+  {roll:"2102508806",name:"SHIV PRAKASH MAURYA"},
+  {roll:"2102508807",name:"SHIVAM KUMAR"},
+  {roll:"2102508808",name:"SHIVANSH GAURAV"},
+  {roll:"2102508809",name:"Shivansh Goel"},
+  {roll:"2102508810",name:"SHRESTH NANWANI"},
+  {roll:"2102508811",name:"SHREYA AGRAWAL"},
+  {roll:"2102508812",name:"SHREYASH SARANGDHAR AMBEDARE"},
+  {roll:"2102508813",name:"SHUBHANGI KUMARI"},
+  {roll:"2102508814",name:"Siddhanth S Shiraguppi"},
+  {roll:"2102508815",name:"SIDHARTH MISHRA"},
+  {roll:"2102508816",name:"Soham Muhury"},
+  {roll:"2102508817",name:"SRISHTI NAGPURE"},
+  {roll:"2102508818",name:"SUJAN Y D"},
+  {roll:"2102508819",name:"UNNATI JAISWAL"},
+  {roll:"2102508820",name:"UTSAV DOYE"},
+  {roll:"2102508821",name:"V Ruthvik"},
+  {roll:"2102508822",name:"VANI BANSAL"},
+  {roll:"2102508823",name:"VIKAS SHARMA"},
+  {roll:"2102508824",name:"Vineesh S S"},
+  {roll:"2102508825",name:"AKSH WAGLE"},
+];
+
+// Timetable data (B1 & B2)
+const TIMETABLE = {
+  B1: {
+    Mon: [
+      {id:"math-l",    subject:"MATH",                  type:"Lecture",   time:"09:00-10:30", color:"#f59e0b"},
+      {id:"wap-t",     subject:"WAP",                   type:"Tutorial",  time:"10:30-12:00", color:"#3b82f6"},
+      {id:"ic-m",      subject:"INDIAN CONSTITUTION",   type:"Lecture",   time:"13:30-14:15", color:"#ec4899"},
+      {id:"math-p-b1", subject:"MATH (P) [B1]",         type:"Practical", time:"14:15-15:45", color:"#f59e0b"},
+      {id:"wap-p-b1",  subject:"WAP (P) [B1]",          type:"Practical", time:"15:45-17:15", color:"#3b82f6"},
+    ],
+    Tue: [
+      {id:"chem-t",    subject:"APPLIED CHEM",          type:"Tutorial",  time:"09:00-10:30", color:"#10b981"},
+      {id:"dsa-t",     subject:"DSA",                   type:"Tutorial",  time:"10:30-12:00", color:"#8b5cf6"},
+      {id:"yoga-l",    subject:"YOGA",                  type:"Lecture",   time:"13:30-14:15", color:"#06b6d4"},
+      {id:"chem-p-b1", subject:"APPLIED CHEMISTRY (P) [B1]",type:"Practical",time:"14:15-15:45",color:"#10b981"},
+      {id:"eng-l",     subject:"ENGLISH",               type:"Lecture",   time:"15:45-17:15", color:"#64748b"},
+    ],
+    Wed: [
+      {id:"wap-t-w",   subject:"WAP",                   type:"Tutorial",  time:"09:00-10:30", color:"#3b82f6"},
+      {id:"math-t-w",  subject:"MATH",                  type:"Tutorial",  time:"10:30-12:00", color:"#f59e0b"},
+      {id:"wap-p-b1-w",subject:"WAP (P) [B1]",          type:"Practical", time:"13:30-15:00", color:"#3b82f6"},
+      {id:"dsa-p-b1-w",subject:"DSA (P) [B1]",          type:"Practical", time:"15:00-15:45", color:"#8b5cf6"},
+      {id:"yoga-p-w",  subject:"YOGA (P)",              type:"Practical", time:"15:45-16:30", color:"#06b6d4"},
+      {id:"math-p-b1-w",subject:"MATH (P) [B1]",        type:"Practical", time:"16:30-18:00", color:"#f59e0b"},
+    ],
+    Thu: [
+      {id:"dsa-t-th",  subject:"DSA",                   type:"Tutorial",  time:"09:00-10:30", color:"#8b5cf6"},
+      {id:"chem-t-th", subject:"APPLIED CHEM",          type:"Tutorial",  time:"10:30-12:00", color:"#10b981"},
+      {id:"dsa-p-b1-th",subject:"DSA (P) [B1]",         type:"Practical", time:"13:30-15:00", color:"#8b5cf6"},
+      {id:"yoga-p-th", subject:"YOGA (P)",              type:"Practical", time:"15:00-15:45", color:"#06b6d4"},
+      {id:"chem-p-b1-th",subject:"APPLIED CHEMISTRY (P) [B1]",type:"Practical",time:"15:45-17:15",color:"#10b981"},
+    ],
+    Fri: [
+      {id:"contest-f", subject:"CONTEST",               type:"Contest",   time:"09:00-12:00", color:"#ef4444"},
+      {id:"yoga-l-f",  subject:"YOGA",                  type:"Lecture",   time:"13:30-14:15", color:"#06b6d4"},
+      {id:"sports-f",  subject:"SPORTS",                type:"Activity",  time:"14:15-15:45", color:"#f59e0b"},
+      {id:"office-f",  subject:"OFFICE HOURS",          type:"Other",     time:"15:45-17:15", color:"#64748b"},
+    ],
+  },
+  B2: {
+    Mon: [
+      {id:"math-l",    subject:"MATH",                  type:"Lecture",   time:"09:00-10:30", color:"#f59e0b"},
+      {id:"wap-t",     subject:"WAP",                   type:"Tutorial",  time:"10:30-12:00", color:"#3b82f6"},
+      {id:"ic-m",      subject:"INDIAN CONSTITUTION",   type:"Lecture",   time:"13:30-14:15", color:"#ec4899"},
+      {id:"chem-p-b2", subject:"APPLIED CHEMISTRY (P) [B2]",type:"Practical",time:"14:15-15:45",color:"#10b981"},
+      {id:"math-p-b2", subject:"MATH (P) [B2]",         type:"Practical", time:"15:45-17:15", color:"#f59e0b"},
+    ],
+    Tue: [
+      {id:"chem-t",    subject:"APPLIED CHEM",          type:"Tutorial",  time:"09:00-10:30", color:"#10b981"},
+      {id:"dsa-t",     subject:"DSA",                   type:"Tutorial",  time:"10:30-12:00", color:"#8b5cf6"},
+      {id:"yoga-l",    subject:"YOGA",                  type:"Lecture",   time:"13:30-14:15", color:"#06b6d4"},
+      {id:"wap-p-b2",  subject:"WAP (P) [B2]",          type:"Practical", time:"14:15-15:45", color:"#3b82f6"},
+      {id:"eng-l",     subject:"ENGLISH",               type:"Lecture",   time:"15:45-17:15", color:"#64748b"},
+    ],
+    Wed: [
+      {id:"wap-t-w",   subject:"WAP",                   type:"Tutorial",  time:"09:00-10:30", color:"#3b82f6"},
+      {id:"math-t-w",  subject:"MATH",                  type:"Tutorial",  time:"10:30-12:00", color:"#f59e0b"},
+      {id:"dsa-p-b2-w",subject:"DSA (P) [B2]",          type:"Practical", time:"13:30-15:00", color:"#8b5cf6"},
+      {id:"math-p-b2-w",subject:"MATH (P) [B2]",        type:"Practical", time:"15:00-16:30", color:"#f59e0b"},
+      {id:"chem-p-b2-w",subject:"APPLIED CHEMISTRY (P) [B2]",type:"Practical",time:"16:30-18:00",color:"#10b981"},
+    ],
+    Thu: [
+      {id:"dsa-t-th",  subject:"DSA",                   type:"Tutorial",  time:"09:00-10:30", color:"#8b5cf6"},
+      {id:"chem-t-th", subject:"APPLIED CHEM",          type:"Tutorial",  time:"10:30-12:00", color:"#10b981"},
+      {id:"wap-p-b2-th",subject:"WAP (P) [B2]",         type:"Practical", time:"13:30-15:00", color:"#3b82f6"},
+      {id:"yoga-p-th", subject:"YOGA (P)",              type:"Practical", time:"15:00-15:45", color:"#06b6d4"},
+      {id:"dsa-p-b2-th",subject:"DSA (P) [B2]",         type:"Practical", time:"15:45-17:15", color:"#8b5cf6"},
+    ],
+    Fri: [
+      {id:"contest-f", subject:"CONTEST",               type:"Contest",   time:"09:00-12:00", color:"#ef4444"},
+      {id:"yoga-l-f",  subject:"YOGA",                  type:"Lecture",   time:"13:30-14:15", color:"#06b6d4"},
+      {id:"sports-f",  subject:"SPORTS",                type:"Activity",  time:"14:15-15:45", color:"#f59e0b"},
+      {id:"office-f",  subject:"OFFICE HOURS",          type:"Other",     time:"15:45-17:15", color:"#64748b"},
+    ],
+  },
+};
+
+const DAY_NAMES = {Mon:"Monday",Tue:"Tuesday",Wed:"Wednesday",Thu:"Thursday",Fri:"Friday"};
+const DAY_IDX   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+// =====================
+// STATE
+// =====================
+let attendance = {};      // {roll: {status:'P'|'A'|'L', lateTime:'HH:MM'}}
+let selectedClass = null; // {subject, type, time, color, batch, date}
+let ttBatch = 'B1';
+let customClasses = JSON.parse(localStorage.getItem('ecr_custom_classes') || '[]');
+let savedRecords  = JSON.parse(localStorage.getItem('ecr_attendance')     || '{}');
+
+// =====================
+// INIT
+// =====================
+function init() {
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0];
+  document.getElementById('attDate').value = dateStr;
+  const dayIdx = today.getDay();
+  const dayName = DAY_IDX[dayIdx];
+  const dayEl = document.getElementById('daySelect');
+  if (['Mon','Tue','Wed','Thu','Fri'].includes(dayName)) {
+    dayEl.value = dayName;
+  } else {
+    dayEl.value = 'Mon';
+  }
+  updateClassPills();
+  renderStudentList();
+  renderCustomClassSettings();
+  renderRecords();
+  renderTimetable();
+  startClock();
+}
+
+function startClock() {
+  function tick() {
+    const now = new Date();
+    document.getElementById('clockEl').textContent = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('dateStrEl').textContent = now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'short',day:'numeric'});
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+function onDateChange() {
+  const d = new Date(document.getElementById('attDate').value);
+  const dayName = DAY_IDX[d.getUTCDay()];
+  const dayEl = document.getElementById('daySelect');
+  if (['Mon','Tue','Wed','Thu','Fri'].includes(dayName)) dayEl.value = dayName;
+  updateClassPills();
+}
+
+// =====================
+// TABS
+// =====================
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'records') renderRecords();
+  if (name === 'timetable') renderTimetable();
+  if (name === 'settings') renderCustomClassSettings();
+}
+
+// =====================
+// CLASS PILLS
+// =====================
+function updateClassPills() {
+  const batch = document.getElementById('batchSelect').value;
+  const day   = document.getElementById('daySelect').value;
+  const useBatch = batch === 'ALL' ? 'B1' : batch;
+  const classes  = (TIMETABLE[useBatch] && TIMETABLE[useBatch][day]) || [];
+
+  const container = document.getElementById('classPills');
+  container.innerHTML = '';
+
+  classes.forEach(cls => {
+    const pill = document.createElement('button');
+    pill.className = 'class-pill' + (selectedClass && selectedClass.id === cls.id + '_' + day ? ' active' : '');
+    pill.innerHTML = `<span>${cls.subject}</span><span class="pill-time">${cls.time}</span>`;
+    pill.style.setProperty('--c', cls.color);
+    if (selectedClass && selectedClass.id === cls.id + '_' + day) {
+      pill.style.background = cls.color;
+      pill.style.borderColor = cls.color;
+      pill.style.color = '#fff';
+    }
+    pill.onclick = () => selectClass({...cls, id: cls.id + '_' + day, batch, day});
+    container.appendChild(pill);
+  });
+
+  // Custom classes
+  customClasses.forEach((cls, i) => {
+    const pill = document.createElement('button');
+    const isActive = selectedClass && selectedClass.id === 'custom_' + i + '_' + day;
+    pill.className = 'class-pill custom-pill' + (isActive ? ' active' : '');
+    pill.innerHTML = `<span>${cls.subject}</span>${cls.time ? `<span class="pill-time">${cls.time}</span>` : ''}`;
+    if (isActive) { pill.style.background = cls.color||'#6366f1'; pill.style.borderColor = cls.color||'#6366f1'; pill.style.color='#fff'; }
+    pill.onclick = () => selectClass({...cls, id: 'custom_' + i + '_' + day, batch, day});
+    container.appendChild(pill);
+  });
+
+  // Add custom pill
+  const addPill = document.createElement('button');
+  addPill.className = 'class-pill add-pill';
+  addPill.innerHTML = '+ Add Custom Class';
+  addPill.onclick = openCustomAdder;
+  container.appendChild(addPill);
+}
+
+function selectClass(cls) {
+  const date = document.getElementById('attDate').value;
+  selectedClass = {...cls, date};
+  attendance = {};
+  // Load existing if present
+  const key = recordKey(date, cls.subject, cls.batch || document.getElementById('batchSelect').value);
+  if (savedRecords[key]) {
+    attendance = JSON.parse(JSON.stringify(savedRecords[key].attendance));
+  }
+  updateClassPills();
+  renderMarkSection();
+}
+
+function recordKey(date, subject, batch) {
+  return `${date}__${subject}__${batch}`;
+}
+
+// =====================
+// CUSTOM CLASS ADDER (inline)
+// =====================
+function openCustomAdder() {
+  document.getElementById('customAdder').style.display = 'block';
+  document.getElementById('customName').focus();
+}
+
+function closeCustomAdder() {
+  document.getElementById('customAdder').style.display = 'none';
+  document.getElementById('customName').value = '';
+  document.getElementById('customTime').value = '';
+}
+
+function selectCustomClass() {
+  const name = document.getElementById('customName').value.trim();
+  const time = document.getElementById('customTime').value.trim();
+  if (!name) { showToast('Enter a class name', 'error'); return; }
+  const day   = document.getElementById('daySelect').value;
+  const batch = document.getElementById('batchSelect').value;
+  selectClass({id:'temp_custom_'+Date.now(), subject:name, type:'Custom', time, color:'#6366f1', batch, day});
+  closeCustomAdder();
+}
+
+function saveAndSelectCustomClass() {
+  const name  = document.getElementById('customName').value.trim();
+  const time  = document.getElementById('customTime').value.trim();
+  if (!name) { showToast('Enter a class name', 'error'); return; }
+  const newCls = {subject:name, type:'Custom', time, color:'#6366f1'};
+  customClasses.push(newCls);
+  localStorage.setItem('ecr_custom_classes', JSON.stringify(customClasses));
+  closeCustomAdder();
+  updateClassPills();
+  const day   = document.getElementById('daySelect').value;
+  const batch = document.getElementById('batchSelect').value;
+  selectClass({...newCls, id:'custom_'+(customClasses.length-1)+'_'+day, batch, day});
+  showToast('Class saved!', 'success');
+}
+
+// =====================
+// MARK SECTION
+// =====================
+function renderMarkSection() {
+  if (!selectedClass) return;
+  document.getElementById('noClassMsg').style.display = 'none';
+  document.getElementById('markSection').style.display = 'block';
+  document.getElementById('sessionTitle').textContent = selectedClass.subject + (selectedClass.time ? '  ·  ' + selectedClass.time : '');
+  document.getElementById('sessionMeta').textContent =
+    DAY_NAMES[selectedClass.day] + '  ·  ' + selectedClass.date + '  ·  ' +
+    (selectedClass.batch === 'ALL' ? 'All Students' : 'Batch ' + selectedClass.batch) +
+    '  ·  ' + (selectedClass.type || 'Class');
+  renderStudentTbody();
+}
+
+function getStudentsForBatch(batch) {
+  return STUDENTS; // all students shown; batch is just metadata for the record
+}
+
+function renderStudentTbody() {
+  const tbody = document.getElementById('studentTbody');
+  const query = (document.getElementById('searchInput').value || '').toLowerCase();
+  const students = getStudentsForBatch(selectedClass ? selectedClass.batch : 'ALL');
+  tbody.innerHTML = '';
+  let total = 0, present = 0, absent = 0, late = 0;
+
+  students.forEach((s, idx) => {
+    const rec = attendance[s.roll] || {status:'', lateTime:''};
+    const match = !query || s.name.toLowerCase().includes(query) || s.roll.includes(query);
+    const status = rec.status || '';
+    total++;
+    if (status === 'P') present++;
+    else if (status === 'A') absent++;
+    else if (status === 'L') late++;
+
+    const tr = document.createElement('tr');
+    if (!match) tr.className = 'hidden-row';
+    tr.innerHTML = `
+      <td class="sno">${idx+1}</td>
+      <td class="roll">${s.roll}</td>
+      <td class="name">${s.name}</td>
+      <td>
+        <div class="att-grp">
+          <button class="att-btn p${status==='P'?' on':''}" onclick="setStatus('${s.roll}','P',this)">P</button>
+          <button class="att-btn a${status==='A'?' on':''}" onclick="setStatus('${s.roll}','A',this)">A</button>
+          <button class="att-btn l${status==='L'?' on':''}" onclick="setStatus('${s.roll}','L',this)">L</button>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span id="lbl_${s.roll}"
+            style="font-size:0.72rem;color:#b45309;font-weight:600;display:${status==='L'?'inline':'none'};white-space:nowrap;">Arrived at:</span>
+          <input type="time" class="late-time-input${status==='L'?' show':''}"
+            id="lt_${s.roll}" value="${rec.lateTime||''}"
+            onchange="setLateTime('${s.roll}',this.value)"
+            title="Time student arrived (late)" />
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('statTotal').textContent   = total;
+  document.getElementById('statPresent').textContent  = present;
+  document.getElementById('statAbsent').textContent   = absent;
+  document.getElementById('statLate').textContent     = late;
+}
+
+function setStatus(roll, status, btn) {
+  if (!attendance[roll]) attendance[roll] = {status:'', lateTime:''};
+  attendance[roll].status = status;
+  const row = btn.closest('tr');
+  row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const ltInput = document.getElementById('lt_' + roll);
+  const lblEl = document.getElementById('lbl_' + roll);
+  if (status === 'L') {
+    ltInput.classList.add('show');
+    if (lblEl) lblEl.style.display = 'inline';
+    if (!ltInput.value) {
+      const now = new Date();
+      ltInput.value = now.toTimeString().slice(0,5);
+      attendance[roll].lateTime = ltInput.value;
+    }
+  } else {
+    ltInput.classList.remove('show');
+    if (lblEl) lblEl.style.display = 'none';
+  }
+  updateStats();
+}
+
+function setLateTime(roll, val) {
+  if (!attendance[roll]) attendance[roll] = {status:'L', lateTime:val};
+  attendance[roll].lateTime = val;
+}
+
+function updateStats() {
+  let p=0, a=0, l=0, t=STUDENTS.length;
+  STUDENTS.forEach(s => {
+    const st = attendance[s.roll]?.status;
+    if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++;
+  });
+  document.getElementById('statTotal').textContent  = t;
+  document.getElementById('statPresent').textContent = p;
+  document.getElementById('statAbsent').textContent  = a;
+  document.getElementById('statLate').textContent    = l;
+}
+
+function filterStudents() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#studentTbody tr').forEach(tr => {
+    const name = tr.querySelector('.name')?.textContent.toLowerCase() || '';
+    const roll = tr.querySelector('.roll')?.textContent.toLowerCase() || '';
+    tr.classList.toggle('hidden-row', !!(query && !name.includes(query) && !roll.includes(query)));
+  });
+}
+
+function markAll(status) {
+  STUDENTS.forEach(s => {
+    if (!attendance[s.roll]) attendance[s.roll] = {status:'', lateTime:''};
+    attendance[s.roll].status = status;
+  });
+  renderStudentTbody();
+}
+
+function resetAll() {
+  attendance = {};
+  renderStudentTbody();
+}
+
+// =====================
+// EXPORT (auto-saves to Records in background)
+// =====================
+function autoSave() {
+  if (!selectedClass) return;
+  const batch = selectedClass.batch || document.getElementById('batchSelect').value;
+  const key   = recordKey(selectedClass.date, selectedClass.subject, batch);
+  savedRecords[key] = {
+    date: selectedClass.date, subject: selectedClass.subject,
+    time: selectedClass.time || '', type: selectedClass.type || '',
+    batch: batch, day: selectedClass.day,
+    savedAt: new Date().toISOString(),
+    attendance: JSON.parse(JSON.stringify(attendance)),
+  };
+  localStorage.setItem('ecr_attendance', JSON.stringify(savedRecords));
+}
+
+function exportCSV() {
+  if (!selectedClass) { showToast('Select a class first', 'error'); return; }
+  const unmarked = STUDENTS.filter(s => !attendance[s.roll]?.status).length;
+  if (unmarked > 0 && !confirm(`${unmarked} student(s) not yet marked. Export anyway?`)) return;
+  autoSave();
+  const batch = selectedClass.batch === 'ALL' ? 'All Students' : 'Batch ' + selectedClass.batch;
+  let p=0, a=0, l=0;
+  STUDENTS.forEach(s => {
+    const st = attendance[s.roll]?.status;
+    if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++;
+  });
+  const rows = [
+    ['ECR ATTENDANCE SHEET', '', '', '', ''],
+    ['Class / Subject', selectedClass.subject, '', '', ''],
+    ['Date', selectedClass.date, '', '', ''],
+    ['Day', DAY_NAMES[selectedClass.day] || selectedClass.day, '', '', ''],
+    ['Time Slot', selectedClass.time || 'N/A', '', '', ''],
+    ['Type', selectedClass.type || 'Class', '', '', ''],
+    ['Batch', batch, '', '', ''],
+    ['Exported At', new Date().toLocaleString('en-IN'), '', '', ''],
+    ['', '', '', '', ''],
+    ['Summary', `Present: ${p}`, `Absent: ${a}`, `Late: ${l}`, `Total: ${STUDENTS.length}`],
+    ['', '', '', '', ''],
+    ['S.No', 'Roll Number', 'Name', 'Status', 'Late Arrival Time'],
+  ];
+  STUDENTS.forEach((s, i) => {
+    const rec = attendance[s.roll] || {};
+    const statusLabel = rec.status === 'P' ? 'Present' : rec.status === 'A' ? 'Absent' : rec.status === 'L' ? 'Late' : 'Not Marked';
+    rows.push([i+1, s.roll, s.name, statusLabel, rec.status === 'L' ? (rec.lateTime || '') : '']);
+  });
+  rows.push(['', '', '', '', '']);
+  rows.push(['--- CR GUIDELINES ---', '', '', '', '']);
+  rows.push(['1. Mark attendance at the START of each class.', '', '', '', '']);
+  rows.push(['2. P = Present  |  A = Absent  |  L = Late (record arrival time).', '', '', '', '']);
+  rows.push(['3. For LATE students, enter the exact time they entered the class.', '', '', '', '']);
+  rows.push(['4. Save the record before switching to another class.', '', '', '', '']);
+  rows.push(['5. Export CSV after saving — share with the faculty the same day.', '', '', '', '']);
+  rows.push(['6. Do NOT edit roll numbers or names in the exported file.', '', '', '', '']);
+  rows.push(['7. One CSV per class session. Keep files named as downloaded.', '', '', '', '']);
+  downloadCSV(rows, `Attendance_${selectedClass.subject}_${selectedClass.date}.csv`);
+  showToast('Exported! Share the CSV with your faculty.', 'success');
+}
+
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+// =====================
+// RECORDS TAB
+// =====================
+function renderRecords() {
+  const fromVal = document.getElementById('filterFrom').value;
+  const toVal   = document.getElementById('filterTo').value;
+  const subj    = (document.getElementById('filterSubject').value || '').toLowerCase();
+  const list    = document.getElementById('recordsList');
+
+  const keys = Object.keys(savedRecords).sort().reverse();
+  const filtered = keys.filter(k => {
+    const r = savedRecords[k];
+    if (fromVal && r.date < fromVal) return false;
+    if (toVal   && r.date > toVal)   return false;
+    if (subj    && !r.subject.toLowerCase().includes(subj)) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state card"><div style="font-size:2.5rem;margin-bottom:10px;">📭</div><p>No records found.</p></div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach(k => {
+    const r = savedRecords[k];
+    let p=0, a=0, l=0;
+    STUDENTS.forEach(s => {
+      const st = r.attendance[s.roll]?.status;
+      if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++;
+    });
+    const total = STUDENTS.length;
+    const div = document.createElement('div');
+    div.className = 'record-item';
+    div.innerHTML = `
+      <div>
+        <div class="record-item-title">${r.subject}${r.time ? '  ·  ' + r.time : ''}</div>
+        <div class="record-item-meta">${DAY_NAMES[r.day] || r.day}  ·  ${r.date}  ·  Batch ${r.batch}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div class="record-item-stats">
+          <span class="stat-chip present" style="padding:4px 10px;font-size:0.75rem;">P: ${p}</span>
+          <span class="stat-chip absent" style="padding:4px 10px;font-size:0.75rem;">A: ${a}</span>
+          ${l>0?`<span class="stat-chip late" style="padding:4px 10px;font-size:0.75rem;">L: ${l}</span>`:''}
+        </div>
+        <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportRecordCSV('${k}')">CSV</button>
+        <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteRecord('${k}')">Del</button>
+      </div>
+    `;
+    div.onclick = () => openRecordModal(k);
+    list.appendChild(div);
+  });
+}
+
+function clearFilters() {
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  document.getElementById('filterSubject').value = '';
+  renderRecords();
+}
+
+function exportAllCSV() {
+  const rows = [['Date','Day','Subject','Time','Batch','Roll Number','Name','Status','Late Arrival Time']];
+  Object.values(savedRecords).forEach(r => {
+    STUDENTS.forEach(s => {
+      const rec = r.attendance[s.roll] || {};
+      rows.push([r.date, r.day, r.subject, r.time, r.batch, s.roll, s.name, rec.status||'N/A', rec.status==='L'?(rec.lateTime||''):'']);
+    });
+  });
+  downloadCSV(rows, 'ECR_All_Attendance.csv');
+}
+
+function exportRecordCSV(k) {
+  const r = savedRecords[k];
+  if (!r) return;
+  let p=0, a=0, l=0;
+  STUDENTS.forEach(s => {
+    const st = r.attendance[s.roll]?.status;
+    if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++;
+  });
+  const batch = r.batch === 'ALL' ? 'All Students' : 'Batch ' + r.batch;
+  const rows = [
+    ['ECR ATTENDANCE SHEET', '', '', '', ''],
+    ['Class / Subject', r.subject, '', '', ''],
+    ['Date', r.date, '', '', ''],
+    ['Day', DAY_NAMES[r.day] || r.day, '', '', ''],
+    ['Time Slot', r.time || 'N/A', '', '', ''],
+    ['Type', r.type || 'Class', '', '', ''],
+    ['Batch', batch, '', '', ''],
+    ['Saved At', new Date(r.savedAt).toLocaleString('en-IN'), '', '', ''],
+    ['', '', '', '', ''],
+    ['Summary', `Present: ${p}`, `Absent: ${a}`, `Late: ${l}`, `Total: ${STUDENTS.length}`],
+    ['', '', '', '', ''],
+    ['S.No', 'Roll Number', 'Name', 'Status', 'Late Arrival Time'],
+  ];
+  STUDENTS.forEach((s,i) => {
+    const rec = r.attendance[s.roll] || {};
+    const statusLabel = rec.status === 'P' ? 'Present' : rec.status === 'A' ? 'Absent' : rec.status === 'L' ? 'Late' : 'Not Marked';
+    rows.push([i+1, s.roll, s.name, statusLabel, rec.status==='L'?(rec.lateTime||''):'']);
+  });
+  rows.push(['', '', '', '', '']);
+  rows.push(['--- CR GUIDELINES ---', '', '', '', '']);
+  rows.push(['1. Mark attendance at the START of each class.', '', '', '', '']);
+  rows.push(['2. P = Present  |  A = Absent  |  L = Late (record arrival time).', '', '', '', '']);
+  rows.push(['3. For LATE students, enter the exact time they entered the class.', '', '', '', '']);
+  rows.push(['4. Save the record before switching to another class.', '', '', '', '']);
+  rows.push(['5. Export CSV after saving — share with the faculty the same day.', '', '', '', '']);
+  rows.push(['6. Do NOT edit roll numbers or names in the exported file.', '', '', '', '']);
+  rows.push(['7. One CSV per class session. Keep files named as downloaded.', '', '', '', '']);
+  downloadCSV(rows, `Attendance_${r.subject}_${r.date}.csv`);
+}
+
+function deleteRecord(k) {
+  if (!confirm('Delete this attendance record?')) return;
+  delete savedRecords[k];
+  localStorage.setItem('ecr_attendance', JSON.stringify(savedRecords));
+  renderRecords();
+  showToast('Record deleted', 'info');
+}
+
+function openRecordModal(k) {
+  const r = savedRecords[k];
+  if (!r) return;
+  let p=0, a=0, l=0, na=0;
+  document.getElementById('modalTitle').textContent = r.subject + (r.time ? '  ·  ' + r.time : '');
+
+  let tbody = '';
+  STUDENTS.forEach((s, i) => {
+    const rec = r.attendance[s.roll] || {};
+    const st = rec.status || '';
+    if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++; else na++;
+    const badge = st === 'P' ? '<span class="status-badge badge-p">Present</span>'
+                : st === 'A' ? '<span class="status-badge badge-a">Absent</span>'
+                : st === 'L' ? '<span class="status-badge badge-l">Late</span>'
+                : '<span class="status-badge" style="background:#f1f5f9;color:#64748b;">—</span>';
+    tbody += `<tr>
+      <td class="sno">${i+1}</td>
+      <td class="roll">${s.roll}</td>
+      <td class="name">${s.name}</td>
+      <td>${badge}</td>
+      <td>${st==='L'&&rec.lateTime?rec.lateTime:''}</td>
+    </tr>`;
+  });
+
+  document.getElementById('modalBody').innerHTML = `
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">
+      ${DAY_NAMES[r.day]||r.day}  ·  ${r.date}  ·  Batch ${r.batch}
+      <span style="margin-left:8px;font-size:0.75rem;">Saved: ${new Date(r.savedAt).toLocaleString('en-IN')}</span>
+    </div>
+    <div class="summary-grid" style="margin-bottom:18px;">
+      <div class="summary-box"><div class="num" style="color:#1d4ed8;">${STUDENTS.length}</div><div class="lbl">Total</div></div>
+      <div class="summary-box"><div class="num" style="color:#15803d;">${p}</div><div class="lbl">Present</div></div>
+      <div class="summary-box"><div class="num" style="color:#b91c1c;">${a}</div><div class="lbl">Absent</div></div>
+      <div class="summary-box"><div class="num" style="color:#b45309;">${l}</div><div class="lbl">Late</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Roll No.</th><th>Name</th><th>Status</th><th>Late Time</th></tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;text-align:right;">
+      <button class="btn btn-outline" onclick="exportRecordCSV('${k}')">&#11015; Export CSV</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+// =====================
+// TIMETABLE TAB
+// =====================
+function setTtBatch(b) {
+  ttBatch = b;
+  document.getElementById('ttB1Btn').className = 'btn btn-sm ' + (b==='B1'?'btn-primary':'btn-outline');
+  document.getElementById('ttB2Btn').className = 'btn btn-sm ' + (b==='B2'?'btn-primary':'btn-outline');
+  renderTimetable();
+}
+
+function renderTimetable() {
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+  const sched = TIMETABLE[ttBatch];
+  let maxPeriods = 0;
+  days.forEach(d => { if (sched[d].length > maxPeriods) maxPeriods = sched[d].length; });
+
+  let html = '<table class="tt-table"><thead><tr><th>Day</th>';
+  for (let i=1; i<=maxPeriods; i++) html += `<th>Period ${i}</th>`;
+  html += '</tr></thead><tbody>';
+
+  days.forEach(d => {
+    html += `<tr><td><strong>${DAY_NAMES[d]}</strong></td>`;
+    const slots = sched[d] || [];
+    for (let i=0; i<maxPeriods; i++) {
+      if (slots[i]) {
+        const c = slots[i];
+        const bg = c.color+'22';
+        const border = c.color;
+        html += `<td><div class="tt-cell" style="background:${bg};border-left:3px solid ${border};text-align:left;">
+          <div style="font-weight:700;font-size:0.78rem;">${c.subject}</div>
+          <div style="font-size:0.7rem;color:#64748b;">${c.time} · ${c.type}</div>
+        </div></td>`;
+      } else {
+        html += '<td><div style="color:#cbd5e1;text-align:center;font-size:0.75rem;">—</div></td>';
+      }
+    }
+    html += '</tr>';
+  });
+
+  // Lunch note
+  html += `<tr><td colspan="${maxPeriods+1}" style="font-size:0.78rem;color:var(--muted);padding:8px 14px;">
+    <strong>Lunch:</strong> 12:00–13:30 daily (not shown above)
+  </td></tr>`;
+
+  html += '</tbody></table>';
+  document.getElementById('ttWrap').innerHTML = html;
+}
+
+// =====================
+// SETTINGS / CUSTOM CLASSES
+// =====================
+function renderCustomClassSettings() {
+  const el = document.getElementById('customClassList');
+  if (customClasses.length === 0) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No saved custom classes yet.</p>';
+    return;
+  }
+  el.innerHTML = '';
+  customClasses.forEach((cls, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8fafc;border-radius:8px;margin-bottom:8px;';
+    div.innerHTML = `
+      <div style="width:12px;height:12px;border-radius:50%;background:${cls.color||'#6366f1'};flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="font-weight:600;">${cls.subject}</div>
+        <div style="font-size:0.78rem;color:var(--muted);">${cls.type||'Custom'}${cls.time?' · '+cls.time:''}</div>
+      </div>
+      <button class="btn btn-danger btn-xs" onclick="deleteCustomClass(${i})">Delete</button>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function addCustomClass() {
+  const name  = document.getElementById('settingsClassName').value.trim();
+  const time  = document.getElementById('settingsClassTime').value.trim();
+  const color = document.getElementById('settingsClassColor').value;
+  if (!name) { showToast('Enter a class name', 'error'); return; }
+  customClasses.push({subject:name, type:'Custom', time, color});
+  localStorage.setItem('ecr_custom_classes', JSON.stringify(customClasses));
+  document.getElementById('settingsClassName').value = '';
+  document.getElementById('settingsClassTime').value = '';
+  renderCustomClassSettings();
+  updateClassPills();
+  showToast('Custom class added!', 'success');
+}
+
+function deleteCustomClass(i) {
+  if (!confirm(`Delete "${customClasses[i].subject}"?`)) return;
+  customClasses.splice(i, 1);
+  localStorage.setItem('ecr_custom_classes', JSON.stringify(customClasses));
+  renderCustomClassSettings();
+  updateClassPills();
+  showToast('Deleted', 'info');
+}
+
+// =====================
+// STUDENT LIST (settings)
+// =====================
+function renderStudentList() {
+  const tbody = document.getElementById('studentListTbody');
+  tbody.innerHTML = STUDENTS.map((s,i) =>
+    `<tr><td class="sno">${i+1}</td><td class="roll">${s.roll}</td><td class="name">${s.name}</td></tr>`
+  ).join('');
+}
+
+// =====================
+// TOAST
+// =====================
+let toastTimer;
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// =====================
+// START
+// =====================
+init();
+</script>
+</body>
+</html>
