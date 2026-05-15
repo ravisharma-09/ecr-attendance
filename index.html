@@ -383,6 +383,12 @@ tbody tr.hidden-row { display: none; }
             <option value="ALL">All Students</option>
           </select>
         </div>
+        <div class="form-group" style="flex:1;min-width:180px;">
+          <label>CR Name <span style="color:#dc2626;">*</span></label>
+          <input type="text" id="crName" placeholder="Enter your name..." autocomplete="name"
+            style="border-color:#2563eb;"
+            oninput="localStorage.setItem('ecr_cr_name',this.value)" />
+        </div>
       </div>
 
       <div class="class-pills-wrap">
@@ -799,6 +805,8 @@ function init() {
     dayEl.value = 'Mon';
   }
   updateClassPills();
+  const savedCR = localStorage.getItem('ecr_cr_name');
+  if (savedCR) document.getElementById('crName').value = savedCR;
   renderStudentList();
   renderCustomClassSettings();
   renderRecords();
@@ -1119,12 +1127,15 @@ function autoSave() {
 
 function exportCSV() {
   if (!selectedClass) { showToast('Select a class first', 'error'); return; }
-  const unmarked = STUDENTS.filter(s => !attendance[s.roll]?.status).length;
+  const crName = document.getElementById('crName').value.trim();
+  if (!crName) { showToast('Please enter your CR name before exporting', 'error'); document.getElementById('crName').focus(); return; }
+  const students = getStudentsForBatch(selectedClass.batch);
+  const unmarked = students.filter(s => !attendance[s.roll]?.status).length;
   if (unmarked > 0 && !confirm(`${unmarked} student(s) not yet marked. Export anyway?`)) return;
   autoSave();
   const batch = selectedClass.batch === 'ALL' ? 'All Students' : 'Batch ' + selectedClass.batch;
   let p=0, a=0, l=0;
-  STUDENTS.forEach(s => {
+  students.forEach(s => {
     const st = attendance[s.roll]?.status;
     if (st==='P') p++; else if (st==='A') a++; else if (st==='L') l++;
   });
@@ -1136,13 +1147,14 @@ function exportCSV() {
     ['Time Slot', selectedClass.time || 'N/A', '', '', ''],
     ['Type', selectedClass.type || 'Class', '', '', ''],
     ['Batch', batch, '', '', ''],
+    ['Marked By (CR)', crName, '', '', ''],
     ['Exported At', new Date().toLocaleString('en-IN'), '', '', ''],
     ['', '', '', '', ''],
-    ['Summary', `Present: ${p}`, `Absent: ${a}`, `Late: ${l}`, `Total: ${STUDENTS.length}`],
+    ['Summary', `Present: ${p}`, `Absent: ${a}`, `Late: ${l}`, `Total: ${students.length}`],
     ['', '', '', '', ''],
     ['S.No', 'Roll Number', 'Name', 'Status', 'Late Arrival Time'],
   ];
-  STUDENTS.forEach((s, i) => {
+  students.forEach((s, i) => {
     const rec = attendance[s.roll] || {};
     const statusLabel = rec.status === 'P' ? 'Present' : rec.status === 'A' ? 'Absent' : rec.status === 'L' ? 'Late' : 'Not Marked';
     rows.push([i+1, s.roll, s.name, statusLabel, rec.status === 'L' ? (rec.lateTime || '') : '']);
